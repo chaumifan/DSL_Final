@@ -80,5 +80,5 @@ def plotstft(samples, samplerate, binsize=2**10, plotpath=None, colormap="jet", 
         plt.savefig(plotpath, bbox_inches="tight")
     else:
         plt.show()
-        
     plt.clf()
+    plt.close('all')

@@ -5,6 +5,7 @@ from subprocess import call
 from scipy import signal
 from scipy.io import wavfile
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import audiospec
 import argparse
@@ -44,12 +45,18 @@ def main():
 
   # Get all the input midi files
   midis = [x for x in listdir(input_dir) if x.endswith('.mid')]
+  # Get existing wav files
+  wavs = [x for x in listdir(wav_dir) if x.endswith('.wav')]
+  # Get existing spectrograms
+  specs = [x for x in listdir(spec_dir) if x.endswith('.jpg')]
   
   for midi in midis:
     print(midi)
     name = midi[:-4]
-    midi_to_wav(join(input_dir, midi), join(wav_dir, name + '.wav'), soundfont=soundfont)
-    wav_to_spectrogram(join(wav_dir, name + '.wav'), join(spec_dir, name + '.jpg'))
+    # if name + '.wav' not in wavs:
+    #   midi_to_wav(join(input_dir, midi), join(wav_dir, name + '.wav'), soundfont=soundfont)
+    if name + '.jpg' not in specs:
+      wav_to_spectrogram(join(wav_dir, name + '.wav'), join(spec_dir, name + '.jpg'))
   print('Done!')
 
 

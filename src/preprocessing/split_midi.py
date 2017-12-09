@@ -2,6 +2,7 @@ import mido
 from mido import MidiFile, MidiTrack, Message, MetaMessage
 from os import listdir
 from os.path import isfile, split, join
+import argparse
 
 def split_midi(mid_file, target_dir, default_tempo=500000, target_segment_len=1):
   '''Split midi file into many chunks'''
@@ -64,7 +65,11 @@ def main():
   midis = [x for x in listdir(input_dir) if x.endswith('.mid')]
 
   for midi in midis:
-    split_midi(midi, target_dir)
+    print(midi)
+    try:
+      split_midi(join(input_dir, midi), target_dir)
+    except:
+      print('\tProblem!')
   
 
 if __name__ == '__main__':
