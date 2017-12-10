@@ -27,22 +27,17 @@ def pretty_midi_to_one_hot(pm, fs=100):
 
     # Allocate a matrix of zeros - we will add in as we go
     one_hots = []
-    log = 0
+
     print(len(pm.instruments))
     for instrument in pm.instruments:
         one_hot = np.zeros((128, int(fs*instrument.get_end_time())+1))
         for note in instrument.notes:
             # note on
-            one_hot[note.pitch, int(note.start*fs):int(note.end*fs)] = 1
-            
-            # one_hot[note.pitch, int(note.end*fs)] = 0
-
-            # if log<100:
-            #     print(str(note.pitch) + " " + str(int(note.start*fs)))
-            #     print(one_hot[note.pitch, int(note.start*fs)])
-            #     print(str(note.pitch) + " " + str(int(note.end*fs)))
-            #     print(one_hot[note.pitch, int(note.end*fs)])
-            #     log += 1
+            one_hot[note.pitch, int(note.start*fs)] = 1
+            print('note on',note.pitch, int(note.start*fs))
+            # note off
+            one_hot[note.pitch, int(note.end*fs)] = 0
+            print('note off',note.pitch, int(note.end*fs))
         one_hots.append(one_hot)
 
     one_hot = np.zeros((128, np.max([o.shape[1] for o in one_hots])))
@@ -97,11 +92,10 @@ def one_hot_to_pretty_midi(one_hot, fs=100, program=1,bpm=120):
     for time, note in zip(*changes):
         change = piano_roll[note, time + 1]
 
-#        if time >= last_beat_time + beat_interval:
-#            for pitch in current_notes:
-#                #do nothing
+        if time >= last_beat_time + beat_interval:
+            for note in current_notes:
+                time = time / fs
 
-        time = time / fs
 
         if change == 1:
             # note on
@@ -130,3 +124,13 @@ def one_hot_to_pretty_midi(one_hot, fs=100, program=1,bpm=120):
             instrument.notes.append(pm_note)
     pm.instruments.append(instrument)
     return pm
+
+def slice_to_categories(piano_roll):
+    notes_list = np.zeros(128)
+    notes = np.nonzero(piano_roll)[0]
+    notes = np.unique(notes)
+
+    for note in notes:
+        notes_list[note] = 1
+
+    return notes_list
