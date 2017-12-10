@@ -1,54 +1,40 @@
 import numpy as np
-import tensorflow as tf
 import keras
-from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Dense, Flatten, Reshape, Input
+from keras.layers import Conv2D, MaxPooling2D, GlobalAveragePooling2D
 from keras.models import Sequential
+from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
 import matplotlib.pyplot as plt
-from keras.datasets import mnist
+from sklearn.model_selection import train_test_split
+from  skimage.measure import block_reduce
 
-batch_size = 128
-num_classes = 128
-epochs = 10
+from PIL import Image
+import utils
+import pretty_midi
+import os, os.path
 
-# input image dimensions
-img_x, img_y = 28, 600
 
-# Insert our data here
-x_train = np.array([[1,1,1],[2,2,2],[3,3,3]])
-y_train = np.array([1,2,3])
-#x_test
-#y_test
+def create_model():
+    img_x, img_y = 312, 611
+    input_shape = (img_x, img_y, 3)
+    num_classes = 128
 
-x_train = x_train.reshape(x_train.shape[0], img_x, img_y, 3)
-x_test = x_test.reshape(x_train.shape[0], img_x, img_y, 3)
-input_shape = (img_x, img_y, 3)
-
-# Convert data to right type
-x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
-x_train /= 255
-x_test /= 255
-print('x_train shape:', x_train.shape)
-print(x_train.shape[0], 'train samples')
-print(x_test.shape[0], 'test samples')
-
-# Not sure if we need these
-y_train = keras.utils.to_categorical(y_train, num_classes)
-y_test = keras.utils.to_categorical(y_train, num_classes)
-
-model = Sequential()
-model.add(Conv2D(32, kernel_size=(5,5), strides=(1,1),
-    activation='relu',
-    input_shape=input_shape))
-model.add(Conv2D(32, (5,5), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2,2), strides=(2,2)))
-model.add(Conv2D(64, (5,5), activation='relu'))
-# Final output layer
-model.add(Conv2D(128, (5,5), activation='sigmoid'))
-
-model.compile(loss=keras.losses.binary_crossentropy,
-        optimizer=keras.optimizers.Adam(),
-        metrics=['accuracy'])
+    model = Sequential()
+    model.add(Conv2D(32, kernel_size=(5,5), strides=(1,1),
+        activation='relu',
+        input_shape=input_shape))
+    model.add(MaxPooling2D(pool_size=(2,2), strides=(2,2)))
+    model.add(Conv2D(64, (5,5), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    #model.add(Conv2D(64, (5,5), activation='relu'))
+    # Final output layer
+    #model.add(Conv2D(128, (5,5), activation='sigmoid'))
+    #model.add(Flatten())
+    model.add(GlobalAveragePooling2D())
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(num_classes, activation='sigmoid'))
+    return model
+    
 
 class AccuracyHistory(keras.callbacks.Callback):
     def on_train_begin(self, logs={}):
@@ -57,18 +43,101 @@ class AccuracyHistory(keras.callbacks.Callback):
     def on_epoch_end(self, batch, logs={}):
         self.acc.append(logs.get('acc'))
 
-history = AccuracyHistory()
 
-model.fit(x_train, y_train,
-        batch_size=batch_size,
-        epochs=epochs,
-        verbose=1,
-        validation_data=(x_test, y_test),
-        callbacks=[history])
-score = model.evaluate(x_test, y_test, verbose=0)
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
-plt.plot(range(1,11), history.acc)
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.show()
+def train(x_train, y_train, x_test, y_test):
+    batch_size = 128
+    num_classes = 128
+    epochs = 10
+
+    # input image dimensions
+    img_x, img_y = 624, 1222
+
+    #path = '/mnt/d/Workspace/EE379K/DSL_Final/models'
+    path = '/mnt/c/Users/chau/Documents/models'
+    model_ckpt = os.path.join(path,'ckpt.h5')
+    
+    #x_train = x_train.reshape(x_train.shape[0], img_x, img_y, 3)
+    #x_test = x_test.reshape(x_train.shape[0], img_x, img_y, 3)
+    
+    # Convert data to right type
+    #x_train = x_train.astype('float32')
+    #x_test = x_test.astype('float32')
+    x_train /= 255
+    x_test /= 255
+    #print('x_train shape:', x_train.shape)
+    print(x_train.shape[0], 'train samples')
+    print(x_test.shape[0], 'test samples')
+
+    model = create_model()
+    model.compile(loss=keras.losses.binary_crossentropy,
+            optimizer=keras.optimizers.Adam(),
+            metrics=['accuracy'])
+
+    history = AccuracyHistory()
+
+    checkpoint = ModelCheckpoint(model_ckpt, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+    early_stop = EarlyStopping(patience=5,monitor='val_loss', verbose=1, mode='min')
+    callbacks = [history, checkpoint,early_stop]
+    
+    model.fit(x_train, y_train,
+            batch_size=batch_size,
+            epochs=epochs,
+            verbose=1,
+            validation_data=(x_test, y_test),
+            callbacks=callbacks)
+
+    score = model.evaluate(x_test, y_test, verbose=0)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
+    plt.plot(range(1,11), history.acc)
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.savefig('loss.png')
+    plt.show()
+
+
+def run_cnn(jpg_path, midi_path):
+    # x is spectrogram, y is MIDI
+    #jpg_path = '/mnt/d/Workspace/EE379K/data/spectrograms'
+    #midi_path = '/mnt/d/Workspace/EE379K/data/split_midi'
+    jpg_path = '/mnt/c/Users/chau/Documents/spectrograms'
+    midi_path = '/mnt/c/Users/chau/Documents/split_midi'
+    x_train, y_train = [], []
+    img = []
+    i = 0
+    for filename in os.listdir(jpg_path):
+        print(filename)
+        m_fn = filename.replace(".jpg", ".mid")
+        if os.path.isfile(os.path.join(midi_path, m_fn)):
+            pm = pretty_midi.PrettyMIDI(os.path.join(midi_path, m_fn))
+            oh = utils.pretty_midi_to_one_hot(pm)
+            if type(oh) is not int:
+                oh = utils.slice_to_categories(oh)
+                #oh = oh.reshape(1, 128)
+                y_train.append(oh)
+        
+                im = Image.open(os.path.join(jpg_path, filename))
+                resize = im.resize((1222, 624), Image.NEAREST)
+                resize.load()
+                arr = np.asarray(resize, dtype="float32")
+                arr = block_reduce(arr, block_size=(2,2,1), func=np.mean)
+                x_train.append(arr)
+                if len(x_train) > 100:
+                    break
+
+    x_train = np.array(x_train)
+    #x_train = x_train.reshape(len(x_train), 1)
+    y_train = np.array(y_train)
+    print(x_train.shape)
+    print(y_train.shape)
+    print(len(x_train))
+    print(np.shape(x_train))
+    #im_array = np.array([np.array
+    #x_train = np.array(x_train)
+    x_train, x_test, y_train, y_test = train_test_split(
+            x_train, y_train, test_size=0.2, random_state=1)
+    print(x_train.shape)
+    print(y_train.shape)
+    train(x_train, y_train, x_test, y_test)
+
+run_cnn("h", "p")
