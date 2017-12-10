@@ -28,16 +28,18 @@ def pretty_midi_to_one_hot(pm, fs=100):
     # Allocate a matrix of zeros - we will add in as we go
     one_hots = []
 
-    print(len(pm.instruments))
+    if len(pm.instruments) < 1:
+        return 0
+
     for instrument in pm.instruments:
         one_hot = np.zeros((128, int(fs*instrument.get_end_time())+1))
         for note in instrument.notes:
             # note on
             one_hot[note.pitch, int(note.start*fs)] = 1
-            print('note on',note.pitch, int(note.start*fs))
+            #print('note on',note.pitch, int(note.start*fs))
             # note off
             one_hot[note.pitch, int(note.end*fs)] = 0
-            print('note off',note.pitch, int(note.end*fs))
+            #print('note off',note.pitch, int(note.end*fs))
         one_hots.append(one_hot)
 
     one_hot = np.zeros((128, np.max([o.shape[1] for o in one_hots])))
