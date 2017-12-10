@@ -49,17 +49,17 @@ def train(x_train, y_train, x_test, y_test):
     epochs = 10
 
     # input image dimensions
-    img_x, img_y = 1222, 624
+    img_x, img_y = 624, 1222
 
-    path = '/mnt/d/Workspace'
+    path = '/mnt/d/Workspace/EE379K/DSL_Final/models'
     model_ckpt = os.path.join(path,'ckpt.h5')
     
     #x_train = x_train.reshape(x_train.shape[0], img_x, img_y, 3)
     #x_test = x_test.reshape(x_train.shape[0], img_x, img_y, 3)
     
     # Convert data to right type
-    x_train = x_train.astype('float32')
-    x_test = x_test.astype('float32')
+    #x_train = x_train.astype('float32')
+    #x_test = x_test.astype('float32')
     x_train /= 255
     x_test /= 255
     #print('x_train shape:', x_train.shape)
@@ -96,12 +96,12 @@ def train(x_train, y_train, x_test, y_test):
 
 def run_cnn(jpg_path, midi_path):
     # x is spectrogram, y is MIDI
-    jpg_path = '/mnt/c/Users/chau/Downloads/test/spectrograms'
-    midi_path = '/mnt/c/Users/chau/Downloads/test/split_midi'
+    jpg_path = '/mnt/d/Workspace/EE379K/data/spectrograms'
+    midi_path = '/mnt/d/Workspace/EE379K/data/split_midi'
     #jpg_path = '/mnt/c/Users/chau/Documents/spectrograms'
     #midi_path = '/mnt/c/Users/chau/Documents/split_midi'
     x_train, y_train = [], []
-    
+    img = []    
     for filename in os.listdir(jpg_path):
         print(filename)
         m_fn = filename.replace(".jpg", ".mid")
@@ -114,15 +114,26 @@ def run_cnn(jpg_path, midi_path):
                 y_train.append(oh)
 
                 im = Image.open(os.path.join(jpg_path, filename))
-                arr = np.array(im, dtype=np.uint8)
+                resize = im.resize((1222, 624), Image.NEAREST)
+                resize.load()
+                arr = np.asarray(resize, dtype="float32")
+                if len(x_train) > 2500:
+                    break
                 x_train.append(arr)
 
     x_train = np.array(x_train)
+    #x_train = x_train.reshape(len(x_train), 1)
     y_train = np.array(y_train)
+    print(x_train.shape)
+    print(y_train.shape)
+    print(len(x_train))
+    print(np.shape(x_train))
+    #im_array = np.array([np.array
+    #x_train = np.array(x_train)
     x_train, x_test, y_train, y_test = train_test_split(
             x_train, y_train, test_size=0.2, random_state=1)
-    print x_train.shape
-    print y_train.shape
+    print(x_train.shape)
+    print(y_train.shape)
     train(x_train, y_train, x_test, y_test)
 
 run_cnn("h", "p")
