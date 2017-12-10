@@ -6,6 +6,7 @@ from keras.models import Sequential
 from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from  skimage.measure import block_reduce
 
 from PIL import Image
 import utils
@@ -14,7 +15,7 @@ import os, os.path
 
 
 def create_model():
-    img_x, img_y = 624, 1222
+    img_x, img_y = 312, 611
     input_shape = (img_x, img_y, 3)
     num_classes = 128
 
@@ -51,7 +52,8 @@ def train(x_train, y_train, x_test, y_test):
     # input image dimensions
     img_x, img_y = 624, 1222
 
-    path = '/mnt/d/Workspace/EE379K/DSL_Final/models'
+    #path = '/mnt/d/Workspace/EE379K/DSL_Final/models'
+    path = '/mnt/c/Users/chau/Documents/models'
     model_ckpt = os.path.join(path,'ckpt.h5')
     
     #x_train = x_train.reshape(x_train.shape[0], img_x, img_y, 3)
@@ -96,12 +98,13 @@ def train(x_train, y_train, x_test, y_test):
 
 def run_cnn(jpg_path, midi_path):
     # x is spectrogram, y is MIDI
-    jpg_path = '/mnt/d/Workspace/EE379K/data/spectrograms'
-    midi_path = '/mnt/d/Workspace/EE379K/data/split_midi'
-    #jpg_path = '/mnt/c/Users/chau/Documents/spectrograms'
-    #midi_path = '/mnt/c/Users/chau/Documents/split_midi'
+    #jpg_path = '/mnt/d/Workspace/EE379K/data/spectrograms'
+    #midi_path = '/mnt/d/Workspace/EE379K/data/split_midi'
+    jpg_path = '/mnt/c/Users/chau/Documents/spectrograms'
+    midi_path = '/mnt/c/Users/chau/Documents/split_midi'
     x_train, y_train = [], []
-    img = []    
+    img = []
+    i = 0
     for filename in os.listdir(jpg_path):
         print(filename)
         m_fn = filename.replace(".jpg", ".mid")
@@ -112,14 +115,15 @@ def run_cnn(jpg_path, midi_path):
                 oh = utils.slice_to_categories(oh)
                 #oh = oh.reshape(1, 128)
                 y_train.append(oh)
-
+        
                 im = Image.open(os.path.join(jpg_path, filename))
                 resize = im.resize((1222, 624), Image.NEAREST)
                 resize.load()
                 arr = np.asarray(resize, dtype="float32")
-                if len(x_train) > 2500:
-                    break
+                arr = block_reduce(arr, block_size=(2,2,1), func=np.mean)
                 x_train.append(arr)
+                if len(x_train) > 100:
+                    break
 
     x_train = np.array(x_train)
     #x_train = x_train.reshape(len(x_train), 1)
