@@ -96,32 +96,31 @@ def one_hot_to_pretty_midi(one_hot, fs=100, program=1,bpm=120):
             for note in current_notes:
                 time = time / fs
 
-                note=int(note)
 
-                if change == 1:
-                    # note on
-                    if current_notes[note] == 0:
-                        # from note off
-                        note_on_time[note] = time
-                        current_notes[note] = 1
-                    else:
-                        #re-articulate (later in code)
-                        '''pm_note = pretty_midi.Note(
-                                velocity=100, #don't care fer now
-                                pitch=note,
-                                start=note_on_time[note],
-                                end=time)
-                        instrument.notes.append(pm_note)
-                        note_on_time[note] = time
-                        current_notes[note] = 1'''
-                elif change == 0:
-                    #note off
-                    pm_note = pretty_midi.Note(
-                            velocity=100, #don't care fer now
-                            pitch=note,
-                            start=note_on_time[note],
-                            end=time)
-                    current_notes[note] = 0
-                    instrument.notes.append(pm_note)
+        if change == 1:
+            # note on
+            if current_notes[note] == 0:
+                # from note off
+                note_on_time[note] = time
+                current_notes[note] = 1
+            else:
+                #re-articulate (later in code)
+                '''pm_note = pretty_midi.Note(
+                        velocity=100, #don't care fer now
+                        pitch=note,
+                        start=note_on_time[note],
+                        end=time)
+                instrument.notes.append(pm_note)
+                note_on_time[note] = time
+                current_notes[note] = 1'''
+        elif change == 0:
+            #note off
+            pm_note = pretty_midi.Note(
+                    velocity=100, #don't care fer now
+                    pitch=note,
+                    start=note_on_time[note],
+                    end=time)
+            current_notes[note] = 0
+            instrument.notes.append(pm_note)
     pm.instruments.append(instrument)
     return pm
