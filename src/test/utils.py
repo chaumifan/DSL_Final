@@ -92,11 +92,13 @@ def one_hot_to_pretty_midi(one_hot, fs=100, program=1,bpm=120):
     for time, note in zip(*changes):
         change = piano_roll[note, time + 1]
 
-        if time >= last_beat_time + beat_interval:
-            for note in current_notes:
-                time = time / fs
+#        if time >= last_beat_time + beat_interval:
+#            for pitch in current_notes:
+#                #do nothing
 
+        time = time / fs
 
+        print(str(time) + ": " + str(note))
         if change == 1:
             # note on
             if current_notes[note] == 0:
