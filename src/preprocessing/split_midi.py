@@ -20,9 +20,6 @@ def split_midi(mid_file, target_dir, default_tempo=500000, target_segment_len=1)
   for meta in metas:
     meta.time = int(mido.second2tick(meta.time, mid.ticks_per_beat, tempo))
 
-  # target segment length in seconds
-  target_segment_len = 1
-
   target = MidiFile()
   track = MidiTrack()
   track.extend(metas)
@@ -53,6 +50,7 @@ def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument('input_dir', type=str)
   parser.add_argument('target_dir', type=str)
+  parser.add_argument('-l', '--length', type=float)
   return parser.parse_args()
 
 
@@ -60,6 +58,7 @@ def main():
   args = parse_args()
   input_dir = args.input_dir
   target_dir = args.target_dir
+  length = args.length
 
   # Get all the input midi files
   midis = [x for x in listdir(input_dir) if x.endswith('.mid')]
@@ -67,7 +66,7 @@ def main():
   for midi in midis:
     print(midi)
     try:
-      split_midi(join(input_dir, midi), target_dir)
+      split_midi(join(input_dir, midi), target_dir, target_segment_len=length)
     except:
       print('\tProblem!')
   
