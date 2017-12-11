@@ -36,10 +36,10 @@ def pretty_midi_to_one_hot(pm, fs=100):
         for note in instrument.notes:
             # note on
             one_hot[note.pitch, int(note.start*fs)] = 1
-            #print('note on',note.pitch, int(note.start*fs))
+            print('note on',note.pitch, int(note.start*fs))
             # note off
             one_hot[note.pitch, int(note.end*fs)] = 0
-            #print('note off',note.pitch, int(note.end*fs))
+            print('note off',note.pitch, int(note.end*fs))
         one_hots.append(one_hot)
 
     one_hot = np.zeros((128, np.max([o.shape[1] for o in one_hots])))
@@ -98,7 +98,7 @@ def one_hot_to_pretty_midi(one_hot, fs=100, program=1,bpm=120):
             for note in current_notes:
                 time = time / fs
 
-
+        time = time / fs
         if change == 1:
             # note on
             if current_notes[note] == 0:
