@@ -53,8 +53,8 @@ def main():
   for midi in midis:
     print(midi)
     name = midi[:-4]
-    # if name + '.wav' not in wavs:
-    #   midi_to_wav(join(input_dir, midi), join(wav_dir, name + '.wav'), soundfont=soundfont)
+    if name + '.wav' not in wavs:
+      midi_to_wav(join(input_dir, midi), join(wav_dir, name + '.wav'), soundfont=soundfont)
     if name + '.jpg' not in specs:
       wav_to_spectrogram(join(wav_dir, name + '.wav'), join(spec_dir, name + '.jpg'))
   print('Done!')
