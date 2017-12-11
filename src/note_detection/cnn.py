@@ -52,8 +52,8 @@ def train(x_train, y_train, x_test, y_test):
     # input image dimensions
     img_x, img_y = 624, 1222
 
-    #path = '/mnt/d/Workspace/EE379K/DSL_Final/models'
-    path = '/mnt/c/Users/chau/Documents/models'
+    path = '/mnt/d/Workspace/EE379K/DSL_Final/models'
+    #path = '/mnt/c/Users/chau/Documents/models'
     model_ckpt = os.path.join(path,'ckpt.h5')
     
     #x_train = x_train.reshape(x_train.shape[0], img_x, img_y, 3)
@@ -98,10 +98,10 @@ def train(x_train, y_train, x_test, y_test):
 
 def run_cnn(jpg_path, midi_path):
     # x is spectrogram, y is MIDI
-    #jpg_path = '/mnt/d/Workspace/EE379K/data/spectrograms'
-    #midi_path = '/mnt/d/Workspace/EE379K/data/split_midi'
-    jpg_path = '/mnt/c/Users/chau/Documents/spectrograms'
-    midi_path = '/mnt/c/Users/chau/Documents/split_midi'
+    jpg_path = '/mnt/d/Workspace/EE379K/data/spectrograms'
+    midi_path = '/mnt/d/Workspace/EE379K/data/split_midi'
+    #jpg_path = '/mnt/c/Users/chau/Documents/spectrograms'
+    #midi_path = '/mnt/c/Users/chau/Documents/split_midi'
     x_train, y_train = [], []
     img = []
     i = 0
@@ -122,7 +122,7 @@ def run_cnn(jpg_path, midi_path):
                 arr = np.asarray(resize, dtype="float32")
                 arr = block_reduce(arr, block_size=(2,2,1), func=np.mean)
                 x_train.append(arr)
-                if len(x_train) > 100:
+                if len(x_train) > 500:
                     break
 
     x_train = np.array(x_train)
