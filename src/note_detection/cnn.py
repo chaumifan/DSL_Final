@@ -1,7 +1,7 @@
 import numpy as np
 import keras
 from keras.layers import Dense, Flatten, Reshape, Input
-from keras.layers import Conv2D, MaxPooling2D, GlobalAveragePooling2D
+from keras.layers import Conv2D, MaxPooling2D, GlobalAveragePooling2D, Dropout
 from keras.models import Sequential
 from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
 import matplotlib.pyplot as plt
@@ -15,23 +15,25 @@ import os, os.path
 
 
 def create_model():
-    img_x, img_y = 312, 611
+    img_x, img_y = 145, 49
     input_shape = (img_x, img_y, 3)
     num_classes = 128
 
     model = Sequential()
     model.add(Conv2D(32, kernel_size=(5,5), strides=(1,1),
-        activation='relu',
+        activation='tanh',
         input_shape=input_shape))
+    model.add(Dropout(0.5))
     model.add(MaxPooling2D(pool_size=(2,2), strides=(2,2)))
-    model.add(Conv2D(64, (5,5), activation='relu'))
+    model.add(Conv2D(64, (3,3), activation='tanh'))
+    model.add(Dropout(0.5))
     model.add(MaxPooling2D(pool_size=(2,2)))
     #model.add(Conv2D(64, (5,5), activation='relu'))
     # Final output layer
     #model.add(Conv2D(128, (5,5), activation='sigmoid'))
     #model.add(Flatten())
-    model.add(GlobalAveragePooling2D())
-    model.add(Dense(128, activation='relu'))
+    model.add(Flatten())
+    #model.add(Dense(64, activation='sigmoid'))
     model.add(Dense(num_classes, activation='sigmoid'))
     return model
     
@@ -45,9 +47,9 @@ class AccuracyHistory(keras.callbacks.Callback):
 
 
 def train(x_train, y_train, x_test, y_test):
-    batch_size = 128
+    batch_size = 64
     num_classes = 128
-    epochs = 10
+    epochs = 100
 
     # input image dimensions
     img_x, img_y = 624, 1222
@@ -62,15 +64,16 @@ def train(x_train, y_train, x_test, y_test):
     # Convert data to right type
     #x_train = x_train.astype('float32')
     #x_test = x_test.astype('float32')
-    x_train /= 255
-    x_test /= 255
+    #x_train /= 255
+    #x_test /= 255
+    #print(x_train)
     #print('x_train shape:', x_train.shape)
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
 
     model = create_model()
     model.compile(loss=keras.losses.binary_crossentropy,
-            optimizer=keras.optimizers.Adam(),
+            optimizer=keras.optimizers.Adam(lr=.0001, decay=1e-6),
             metrics=['accuracy'])
 
     history = AccuracyHistory()
@@ -89,7 +92,7 @@ def train(x_train, y_train, x_test, y_test):
     score = model.evaluate(x_test, y_test, verbose=0)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
-    plt.plot(range(1,11), history.acc)
+    plt.plot(range(1,101), history.acc)
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.savefig('loss.png')
@@ -107,6 +110,7 @@ def run_cnn(jpg_path, midi_path):
     i = 0
     for filename in os.listdir(jpg_path):
         print(filename)
+        # filename = "daylight_128.jpg"
         m_fn = filename.replace(".jpg", ".mid")
         if os.path.isfile(os.path.join(midi_path, m_fn)):
             pm = pretty_midi.PrettyMIDI(os.path.join(midi_path, m_fn))
@@ -117,27 +121,37 @@ def run_cnn(jpg_path, midi_path):
                 y_train.append(oh)
         
                 im = Image.open(os.path.join(jpg_path, filename))
-                resize = im.resize((1222, 624), Image.NEAREST)
+                im = im.crop((14, 13, 594, 301))
+                resize = im.resize((49, 145), Image.NEAREST)
                 resize.load()
+                #result = Image.fromarray((visual * 255).astype(numpy.uint8))
+                #resize.save("images/" + str(i) + ".jpg")
                 arr = np.asarray(resize, dtype="float32")
-                arr = block_reduce(arr, block_size=(2,2,1), func=np.mean)
+                print(arr)
+                #arr = block_reduce(arr, block_size=(2,2,1), func=np.mean)
                 x_train.append(arr)
-                if len(x_train) > 500:
-                    break
+                #if len(x_train) > 0:
+                #    break
+                i += 1
 
     x_train = np.array(x_train)
     #x_train = x_train.reshape(len(x_train), 1)
     y_train = np.array(y_train)
+    print(y_train)
     print(x_train.shape)
     print(y_train.shape)
     print(len(x_train))
     print(np.shape(x_train))
     #im_array = np.array([np.array
     #x_train = np.array(x_train)
-    x_train, x_test, y_train, y_test = train_test_split(
-            x_train, y_train, test_size=0.2, random_state=1)
+    x_test = np.copy(x_train)
+    y_test = np.copy(y_train)
+    #x_train, x_test, y_train, y_test = train_test_split(
+    #        x_train, y_train, test_size=0.2, random_state=1)
     print(x_train.shape)
     print(y_train.shape)
+    x_train /= 255.0
+    x_test /= 255.0
     train(x_train, y_train, x_test, y_test)
 
 run_cnn("h", "p")
