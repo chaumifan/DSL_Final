@@ -9,6 +9,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import audiospec
 import argparse
+import cqt
 
 def midi_to_wav(midi_file, output, soundfont='/usr/share/sounds/sft/FluidR3_GM.sf2'):
   '''Convert midi file on disk to wav'''
@@ -18,10 +19,11 @@ def midi_to_wav(midi_file, output, soundfont='/usr/share/sounds/sft/FluidR3_GM.s
 
 def wav_to_spectrogram(wav_file, output, segment=None):
   '''Convert wav file to spectogram'''
-  rate, data = wavfile.read(wav_file)
-  if segment is not None:
-    data = data[segment[0] * rate:segment[1] * rate]
-  audiospec.plotstft(data[:, 0], rate, plotpath=output, plot_artifacts=False)
+  # rate, data = wavfile.read(wav_file)
+  # if segment is not None:
+  #   data = data[segment[0] * rate:segment[1] * rate]
+  # audiospec.plotstft(data[:, 0], rate, plotpath=output, plot_artifacts=False)
+  cqt.plot_cqt(wav_file, output)
 
 
 def parse_args():
@@ -53,8 +55,8 @@ def main():
   for midi in midis:
     print(midi)
     name = midi[:-4]
-    if name + '.wav' not in wavs:
-      midi_to_wav(join(input_dir, midi), join(wav_dir, name + '.wav'), soundfont=soundfont)
+    # if name + '.wav' not in wavs:
+    #   midi_to_wav(join(input_dir, midi), join(wav_dir, name + '.wav'), soundfont=soundfont)
     if name + '.jpg' not in specs:
       wav_to_spectrogram(join(wav_dir, name + '.wav'), join(spec_dir, name + '.jpg'))
   print('Done!')
