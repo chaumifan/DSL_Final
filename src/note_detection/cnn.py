@@ -12,7 +12,7 @@ from PIL import Image
 import utils
 import pretty_midi
 import os, os.path
-
+import sys
 
 def create_model():
     img_x, img_y = 145, 49
@@ -78,8 +78,14 @@ def train(x_train, y_train, x_test, y_test):
 
     history = AccuracyHistory()
 
-    checkpoint = ModelCheckpoint(model_ckpt, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-    early_stop = EarlyStopping(patience=5,monitor='val_loss', verbose=1, mode='min')
+    checkpoint = ModelCheckpoint(model_ckpt,
+            monitor='val_loss',
+            verbose=1,
+            save_best_only=True,
+            mode='min')
+    early_stop = EarlyStopping(patience=5, 
+            monitor='val_loss',
+            verbose=1, mode='min')
     callbacks = [history, checkpoint,early_stop]
     
     model.fit(x_train, y_train,
@@ -101,8 +107,8 @@ def train(x_train, y_train, x_test, y_test):
 
 def run_cnn(jpg_path, midi_path):
     # x is spectrogram, y is MIDI
-    jpg_path = '/mnt/d/Workspace/EE379K/data/spectrograms'
-    midi_path = '/mnt/d/Workspace/EE379K/data/split_midi'
+    #jpg_path = '/mnt/d/Workspace/EE379K/data/spectrograms'
+    #midi_path = '/mnt/d/Workspace/EE379K/data/split_midi'
     #jpg_path = '/mnt/c/Users/chau/Documents/spectrograms'
     #midi_path = '/mnt/c/Users/chau/Documents/split_midi'
     x_train, y_train = [], []
@@ -127,7 +133,7 @@ def run_cnn(jpg_path, midi_path):
                 #result = Image.fromarray((visual * 255).astype(numpy.uint8))
                 #resize.save("images/" + str(i) + ".jpg")
                 arr = np.asarray(resize, dtype="float32")
-                print(arr)
+                #print(arr)
                 #arr = block_reduce(arr, block_size=(2,2,1), func=np.mean)
                 x_train.append(arr)
                 #if len(x_train) > 0:
@@ -137,21 +143,22 @@ def run_cnn(jpg_path, midi_path):
     x_train = np.array(x_train)
     #x_train = x_train.reshape(len(x_train), 1)
     y_train = np.array(y_train)
-    print(y_train)
-    print(x_train.shape)
-    print(y_train.shape)
-    print(len(x_train))
-    print(np.shape(x_train))
+    #print(y_train)
+    #print(x_train.shape)
+    #print(y_train.shape)
+    #print(len(x_train))
+    #print(np.shape(x_train))
     #im_array = np.array([np.array
     #x_train = np.array(x_train)
     x_test = np.copy(x_train)
     y_test = np.copy(y_train)
     #x_train, x_test, y_train, y_test = train_test_split(
     #        x_train, y_train, test_size=0.2, random_state=1)
-    print(x_train.shape)
-    print(y_train.shape)
+    #print(x_train.shape)
+    #print(y_train.shape)
     x_train /= 255.0
     x_test /= 255.0
     train(x_train, y_train, x_test, y_test)
 
-run_cnn("h", "p")
+
+run_cnn(sys.argv[1], sys.argv[2])

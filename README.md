@@ -1,6 +1,6 @@
 # Music Transcription using Machine Learning
 
-This projected was created by Kevin Chau, Kevin Tai, Rohan Kondetimmanahalli, and Dhruv Verma. A blog post detailing more about the project can be found here: https://medium.com/@dhruvverma/music-transcription-using-a-convolutional-neural-network-b115968829f4
+This project was created by Kevin Chau, Kevin Tai, Rohan Kondetimmanahalli, and Dhruv Verma. A blog post detailing more about the project can be found here: https://medium.com/@dhruvverma/music-transcription-using-a-convolutional-neural-network-b115968829f4
 
 ## Background
 

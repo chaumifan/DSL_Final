@@ -16,8 +16,9 @@ def stft(sig, frameSize, overlapFac=0.5, window=np.hanning):
     # zeros at end (thus samples can be fully covered by frames)
     samples = np.append(samples, np.zeros(frameSize))
     
-    frames = stride_tricks.as_strided(samples, shape=(cols, frameSize), 
-                                      strides=(samples.strides[0]*hopSize, samples.strides[0])).copy()
+    frames = stride_tricks.as_strided(
+            samples, shape=(cols, frameSize),
+            strides=(samples.strides[0]*hopSize, samples.strides[0])).copy()
     frames *= win
     
     return np.fft.rfft(frames)    
@@ -51,7 +52,8 @@ def logscale_spec(spec, sr=44100, factor=20.):
     return newspec, freqs
 
 """ plot spectrogram"""
-def plotstft(samples, samplerate, binsize=2**10, plotpath=None, colormap="jet", plot_artifacts=True):
+def plotstft(samples, samplerate, binsize=2**10, 
+        plotpath=None, colormap="jet", plot_artifacts=True):
     s = stft(samples, binsize)
     
     sshow, freq = logscale_spec(s, factor=1.0, sr=samplerate)
@@ -60,7 +62,9 @@ def plotstft(samples, samplerate, binsize=2**10, plotpath=None, colormap="jet", 
     timebins, freqbins = np.shape(ims)
     
     plt.figure(figsize=(15, 7.5))
-    plt.imshow(np.transpose(ims), origin="lower", aspect="auto", cmap=colormap, interpolation="none")
+    plt.imshow(np.transpose(ims), origin="lower", 
+            aspect="auto", cmap=colormap, interpolation="none")
+
     if not plot_artifacts:
       plt.axis('off')
     else:
@@ -72,7 +76,9 @@ def plotstft(samples, samplerate, binsize=2**10, plotpath=None, colormap="jet", 
       plt.ylim([0, freqbins])
 
       xlocs = np.float32(np.linspace(0, timebins-1, 5))
-      plt.xticks(xlocs, ["%.02f" % l for l in ((xlocs*len(samples)/timebins)+(0.5*binsize))/samplerate])
+      plt.xticks(xlocs, ["%.02f" % l for l in 
+          ((xlocs*len(samples)/timebins)+(0.5*binsize))/samplerate])
+
       ylocs = np.int16(np.round(np.linspace(0, freqbins-1, 10)))
       plt.yticks(ylocs, ["%.02f" % freq[i] for i in ylocs])
     

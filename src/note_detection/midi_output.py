@@ -36,8 +36,14 @@ for sec in range(len(prob)):
         if note_prob[note_num] > THRESHOLD:
             if note_num < 21 or note_num > 108:
                 strange += 1
-            track.append(Message("note_on", note=note_prob[note_num], time=delta))
-            track.append(Message("note_off", note=note_prob[note_num], time=delta+100))
+            track.append(
+                    Message("note_on",
+                        note=note_prob[note_num],
+                        time=delta))
+            track.append(
+                    Message("note_off", 
+                        note=note_prob[note_num],
+                        time=delta+100))
 
 track.append(Message("program_change", program=12, time=0))
 
